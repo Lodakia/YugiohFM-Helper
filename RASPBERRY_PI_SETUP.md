@@ -156,7 +156,7 @@ This is the most efficient approach for a Pi Zero 2 W:
    ```bash
    #!/bin/bash
    cd /home/pi/yugiohfm-helper
-   serve -s dist -l 3000 --hostname 0.0.0.0
+   serve dist -l tcp://0.0.0.0:3000
    ```
    
    Make it executable:
@@ -205,7 +205,7 @@ After=network.target
 Type=simple
 User=pi
 WorkingDirectory=/home/pi/yugiohfm-helper
-ExecStart=/usr/bin/npx serve -s dist -l 3000 --hostname 0.0.0.0
+ExecStart=/usr/bin/npx serve dist -l tcp://0.0.0.0:3000
 Restart=always
 RestartSec=10
 
@@ -295,7 +295,7 @@ sudo iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
 
 | How you run it | Port | Command / requirement |
 |----------------|------|-------------------------|
-| Production (recommended on Pi) | **3000** | Build first: `npm run build` or `pnpm run build`, then run `serve -s dist -l 3000 --hostname 0.0.0.0` or use the systemd service / `./pi-start.sh` |
+| Production (recommended on Pi) | **3000** | Build first: `npm run build` or `pnpm run build`, then run `serve dist -l tcp://0.0.0.0:3000` or use the systemd service / `./pi-start.sh` |
 | Development (Vite dev server) | **5173** | `npm run dev` or `pnpm run dev` — use `http://YOUR_PI_IP:5173` in the browser and in `index.html` siteUrl |
 
 If nothing is listening on 3000, `curl http://localhost:3000` will hang and the browser will show nothing. Run these on the Pi to diagnose:
@@ -316,7 +316,7 @@ ls -la /home/pi/yugiohfm-helper/dist
 
 ```bash
 pnpm run build   # or: npm run build
-pnpm exec serve -s dist -l 3000 --hostname 0.0.0.0   # or: npx serve -s dist -l 3000 --hostname 0.0.0.0
+pnpm exec serve dist -l tcp://0.0.0.0:3000   # or: npx serve dist -l tcp://0.0.0.0:3000
 ```
 
 Then try `curl http://localhost:3000` again. To use the Pi’s IP from another device, open `http://192.168.1.164:3000` (replace with your Pi’s IP).

@@ -32,7 +32,7 @@ if [ "$MODE" = "production" ]; then
     
     echo "Starting YGOFM Helper in production mode on port 3000..."
     echo "Access at http://<this-machine-ip>:3000"
-    serve -s dist -l 3000 --hostname 0.0.0.0
+    serve dist -l tcp://0.0.0.0:3000
 else
     # Development mode: Vite dev server on port 5173 (not 3000!)
     echo "Starting YGOFM Helper in development mode on port 5173..."
