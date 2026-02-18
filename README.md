@@ -1,6 +1,10 @@
 # YGOFM - Helper
 
-YGOFM Helper is a cards and fusions database and a webapp based on vueJS for PSX game Yu-Gi-Oh! Forbidden Memory released in 1999. This repository contains the source code and data to run the application, if just want to use the app you can go on https://ygofm.bark.tf/.
+YGOFM Helper is a cards and fusions database and a webapp based on vueJS for PSX game Yu-Gi-Oh! Forbidden Memory released in 1999.
+
+This repository is intended **solely for localhost use**. It is designed to run on your own machine for personal use and testing and **is not intended to be exposed on the public internet or deployed as a shared online service**.
+
+For reference, the original online deployment of this project is available at `https://ygofm.bark.tf/`, but this repository focuses on local, self-hosted usage only.
 
 
 ## Features
@@ -16,12 +20,12 @@ It's time to duel!
 
 ## Getting Started
 
-This section is only if you want to run your own instance of YGOFM Helper, if you only attend to use it you can go on https://ygofm.bark.tf/.
+This section explains how to run your own **local (localhost) instance** of YGOFM Helper.
 
 
 ### Prerequisites
 
-Before doing anything make sure to have Node.js installed on your computer. For more information about nodejs visit the [official website](https://nodejs.org/en/).
+Before doing anything make sure to have Node.js installed on your computer. For more information about Node.js visit the [official website](https://nodejs.org/en/).
 
 Then update your node packet manager to the latest version using `npm install npm@latest -g`.
 
@@ -34,41 +38,47 @@ By default, card visuals are not included as they are not compatible with the op
   
 - Open a terminal at the root of the project folder and install npm packages with the command `npm install`.
 
-- (optional) If you have downloaded card visuals, extract the archive inside `public` folder to include it in your project instance.
+- (optional) If you have downloaded card visuals, extract the archive inside the `public` folder to include it in your project instance.
 
 
-### Run
+### Run (localhost)
 
-- To run the project in developement mode use the command `npm run dev`.
+- To run the project in development mode on localhost use the command:
+
+  ```bash
+  npm run dev
+  ```
+
+  This will start a local development server (typically on `http://localhost:5173` or a similar port, as indicated in the terminal output). Use this mode for day-to-day local usage.
 
 
-### Build
+### Build (for local static serving)
 
-- To build the project use the command `npm build`.
-- To test the build use the command `npm run preview`.
+- To build the project for optimized local use:
 
-Important: You may need to edit `index.html` file of your build result is `dist` folder to change the website url by your own url.
+  ```bash
+  npm run build
+  ```
 
-for example -
-```html
-<script type="text/javascript">
-    var siteUrl = "https://ygofm.bark.tf/"
-</script>
-```
+- To test the build locally:
 
-instead of -
-```html
-<script type="text/javascript">
-    var siteUrl = "http://localhost:3030/"
-</script>
-```
+  ```bash
+  npm run preview
+  ```
+
+The built files are output to the `dist` folder. If you serve these files with a local static file server, ensure that:
+
+- The site is only reachable via `localhost` or `127.0.0.1`.
+- You **do not** bind the server to public interfaces or expose it through port-forwarding, reverse proxies, or public hosting platforms.
+
+If you customize any `siteUrl`-like value in `index.html` or related scripts, keep it pointed to a localhost URL (for example, `http://localhost:3030/`) rather than a public domain.
 
 ---
 
 ## Contributing
 
 Contributing is always welcome. 
-If you want to help on this project by contributing on its developement, by reporting bugs, errors or mistakes or simply by giving your feedback, use the [issues section](https://github.com/Eryux/ygofm-assist-ui/issues). Before posting or doing anything be sure to read the CONTRIBUTING.md which include basic contribution guidelines.
+If you want to help on this project by contributing to its development, by reporting bugs, errors or mistakes or simply by giving your feedback, use this repository's **Issues** section. Before posting or doing anything be sure to read `CONTRIBUTING.md`, which includes basic contribution guidelines.
 
 ---
 
