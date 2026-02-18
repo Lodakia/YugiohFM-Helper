@@ -73,6 +73,10 @@ The built files are output to the `dist` folder. If you serve these files with a
 
 If you customize any `siteUrl`-like value in `index.html` or related scripts, keep it pointed to a localhost URL (for example, `http://localhost:3030/`) rather than a public domain.
 
+### Running on Raspberry Pi (Local Network)
+
+If you want to run this app on a Raspberry Pi for local network access (e.g., accessible from other devices on your home network), see [`RASPBERRY_PI_SETUP.md`](RASPBERRY_PI_SETUP.md) for detailed instructions.
+
 ---
 
 ## Contributing
