@@ -109,7 +109,17 @@
                         self.calculateFusionByResult(self.filter_results, self.filter_deck);
                     }
 
-                    self.filtered_fusions = self.fusions;
+                    // Deduplicate: same material pair + result shows once (e.g. A+A=R or A+B=R vs B+A=R)
+                    const seen = new Set();
+                    self.filtered_fusions = self.fusions.filter(f => {
+                        const id0 = f[0].id;
+                        const id1 = f[1].id;
+                        const resultId = f[2].id;
+                        const key = [id0, id1].sort((a, b) => String(a).localeCompare(String(b))).join(',') + '->' + resultId;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
 
                     self.refreshSort(null);
 
