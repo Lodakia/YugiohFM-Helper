@@ -66,12 +66,23 @@ By default, card visuals are not included as they are not compatible with the op
   npm run preview
   ```
 
-The built files are output to the `dist` folder. If you serve these files with a local static file server, ensure that:
+The built files are output to the `dist` folder.
+
+**Server-side deck persistence:** To keep decks (and game-assist state) saved on the server so they survive restarts and browser closes, run the included Node server instead of a plain static server:
+
+```bash
+npm run build
+npm start
+```
+
+This starts a small server (default port 3000) that serves the app and stores userdata in a `data/userdata.json` file. The app will load and save decks from the server when available; if the server has no API (e.g. when using `npm run dev`), it falls back to cookie storage.
+
+If you use a different static file server (no API), ensure that:
 
 - The site is only reachable via `localhost` or `127.0.0.1`.
 - You **do not** bind the server to public interfaces or expose it through port-forwarding, reverse proxies, or public hosting platforms.
 
-If you customize any `siteUrl`-like value in `index.html` or related scripts, keep it pointed to a localhost URL (for example, `http://localhost:3030/`) rather than a public domain.
+If you customize any `siteUrl`-like value in `index.html` or related scripts, keep it pointed to a localhost URL (for example, `http://localhost:3000`) rather than a public domain.
 
 ### Running on Raspberry Pi (Local Network)
 

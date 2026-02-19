@@ -26,6 +26,9 @@ coverage
 *.sln
 *.sw?
 
+# Server-persisted userdata (decks, game state)
+data/
+
 # Fusion Tools
 src/assets/cards/*.png
 public/cards/*.png

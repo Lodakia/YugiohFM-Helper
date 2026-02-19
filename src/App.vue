@@ -3,7 +3,7 @@
   import SidebarComponent from '@/components/SidebarComponent.vue'
   import { SendRequest } from './request.js'
   import { db } from './database.js'
-  import { LoadUserdata } from './storage.js'
+  import { LoadUserdata, loadUserdataFromServer, userdata } from './storage.js'
 </script>
 
 <script>
@@ -24,10 +24,15 @@
         this.dataIsLoading = true;
 
         this.dataLoadStatusText = "Loading user data";
-        LoadUserdata('userdata');
-
-        this.dataLoadStatusText = "Loading database";
-        SendRequest("GET", siteUrl + "/data.min.json", null, this.dataReceived);
+        loadUserdataFromServer().then((serverData) => {
+          if (serverData != null && typeof serverData === 'object' && Object.keys(serverData).length >= 0) {
+            userdata.data = serverData;
+          } else {
+            LoadUserdata('userdata');
+          }
+          this.dataLoadStatusText = "Loading database";
+          SendRequest("GET", siteUrl + "/data.min.json", null, this.dataReceived);
+        });
       },
       dataReceived(status, response) {
         if (status == 200) {

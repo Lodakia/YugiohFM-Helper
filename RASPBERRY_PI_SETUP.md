@@ -119,50 +119,29 @@ Note this IP address (e.g., `192.168.1.100`). You'll need it for the next steps.
 
 ## Step 4: Configure for Local Network Access
 
-### Option A: Production Build with Static Server (Recommended)
+### Option A: Production Build with Node Server (Recommended)
 
-This is the most efficient approach for a Pi Zero 2 W:
+This is the most efficient approach for a Pi Zero 2 W and **persists decks on the server** (decks survive app restarts and browser closes):
 
-1. **Build the project:**
-   ```bash
-   npm run build
-   ```
-
-2. **Install a lightweight static server:**
-   ```bash
-   npm install -g serve
-   ```
-
-3. **Update `index.html` to use your Pi's IP:**
-   Edit `index.html` and change line 18:
+1. **Update `index.html` to use your Pi's IP:**
+   Edit `index.html` and change the `siteUrl` line (around line 18):
    ```html
    <script type="text/javascript">
-     var siteUrl = "http://YOUR_PI_IP:3000/"
+     var siteUrl = "http://YOUR_PI_IP:3000"
    </script>
    ```
-   Replace `YOUR_PI_IP` with your Pi's IP (e.g., `192.168.1.100`).
+   Replace `YOUR_PI_IP` with your Pi's IP (e.g., `192.168.1.100`). Omit the trailing slash.
 
-4. **Rebuild after the change:**
+2. **Build the project:**
    ```bash
    npm run build
    ```
 
-5. **Create a startup script:**
+3. **Start the server:**
    ```bash
-   nano ~/start-yugiohfm.sh
+   npm start
    ```
-   
-   Add this content:
-   ```bash
-   #!/bin/bash
-   cd /home/pi/yugiohfm-helper
-   serve dist -l tcp://0.0.0.0:3000
-   ```
-   
-   Make it executable:
-   ```bash
-   chmod +x ~/start-yugiohfm.sh
-   ```
+   This runs the included Node server (port 3000), which serves the app and saves userdata (decks, game-assist state) to `data/userdata.json` in the project folder. That file is created automatically and is listed in `.gitignore`.
 
 ### Option B: Development Mode with Vite (Easier, but less efficient)
 
@@ -191,10 +170,10 @@ This is the most efficient approach for a Pi Zero 2 W:
 From the project directory:
 
 ```bash
-nohup ./pi-start.sh > yugiohfm.log 2>&1 &
+nohup node server.js > yugiohfm.log 2>&1 &
 ```
 
-The app keeps running and output goes to `yugiohfm.log`. To stop it later: `pkill -f "serve dist"` (or find the process with `ps aux | grep serve` and kill it).
+The app keeps running and output goes to `yugiohfm.log`. To stop it later: `pkill -f "node server.js"` (or find the process with `ps aux | grep server.js` and kill it).
 
 **Option 5b – Start on boot and keep running (recommended):**  
 Use the systemd service below so the app starts automatically and restarts if it crashes.
@@ -209,7 +188,7 @@ Use the systemd service below so the app starts automatically and restarts if it
 sudo nano /etc/systemd/system/yugiohfm.service
 ```
 
-Add this content (replace `YOUR_USER` with your Pi username, e.g. `lodakia`, and `YOUR_PROJECT_PATH` with the full path to the project, e.g. `/home/lodakia/YugiohFM-Helper`):
+Add this content (replace `YOUR_USER` with your Pi username, e.g. `pi` or `lodakia`, and `YOUR_PROJECT_PATH` with the full path to the project, e.g. `/home/pi/yugiohfm-helper`):
 
 ```ini
 [Unit]
@@ -220,7 +199,7 @@ After=network.target
 Type=simple
 User=YOUR_USER
 WorkingDirectory=YOUR_PROJECT_PATH
-ExecStart=/bin/bash -lc 'cd YOUR_PROJECT_PATH && ./pi-start.sh'
+ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=10
 
@@ -228,7 +207,10 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-The `bash -lc` ensures your shell environment (and thus `pnpm`) is loaded when the service runs.
+Deck and game-assist data are stored in `YOUR_PROJECT_PATH/data/userdata.json`. Back up that file if you want to keep your decks when updating the app.
+
+If you installed Node via NVM, systemd may not have `node` in PATH. Use the full path to `node` in `ExecStart`, for example:
+`ExecStart=/home/pi/.nvm/versions/node/v25.6.1/bin/node server.js` (replace with your NVM node path; run `which node` in your shell to see it).
 
 ### For Development Mode (Option B):
 
