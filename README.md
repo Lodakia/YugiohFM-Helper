@@ -91,6 +91,29 @@ If you customize any `siteUrl`-like value in `index.html` or related scripts, ke
 
 If you want to run this app on a Raspberry Pi for local network access (e.g., accessible from other devices on your home network), see [`RASPBERRY_PI_SETUP.md`](RASPBERRY_PI_SETUP.md) for detailed instructions.
 
+### Updating and re-deploying after pushing to GitHub
+
+After you push changes to GitHub, update and re-deploy on the machine where the app runs (e.g. your Raspberry Pi):
+
+1. **SSH into the Pi** (or open a terminal on the deployment machine).
+2. **From the project directory**, run the included update script (it pulls, installs, builds, and restarts the service; see [RASPBERRY_PI_SETUP.md](RASPBERRY_PI_SETUP.md) for details):
+
+   ```bash
+   cd ~/YugiohFM-Helper   # or your project path
+   ./scripts/update-on-pi.sh
+   ```
+
+   Or do it manually:
+
+   ```bash
+   git pull
+   pnpm install
+   pnpm run build
+   sudo systemctl restart yugiohfm.service
+   ```
+
+The script backs up `data/userdata.json` before updating so your decks are safe. If you deploy somewhere other than a Pi, use the same steps (pull, install, build, then restart your server process).
+
 ---
 
 ## Contributing
