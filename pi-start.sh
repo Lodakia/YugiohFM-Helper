@@ -18,21 +18,15 @@ fi
 MODE="${1:-production}"
 
 if [ "$MODE" = "production" ]; then
-    # Production mode: serve built files on port 3000
+    # Production mode: serve built files on port 3000 (uses serve from project devDependencies)
     if [ ! -d "dist" ]; then
         echo "Error: dist folder not found. Run '$PKG_MGR run build' first."
         exit 1
     fi
     
-    # Check if serve is installed
-    if ! command -v serve &> /dev/null; then
-        echo "Installing 'serve' package..."
-        $PKG_MGR install -g serve 2>/dev/null || npm install -g serve
-    fi
-    
     echo "Starting YGOFM Helper in production mode on port 3000..."
     echo "Access at http://<this-machine-ip>:3000"
-    serve dist -l tcp://0.0.0.0:3000
+    $PKG_MGR exec serve dist -l tcp://0.0.0.0:3000
 else
     # Development mode: Vite dev server on port 5173 (not 3000!)
     echo "Starting YGOFM Helper in development mode on port 5173..."

@@ -185,9 +185,23 @@ This is the most efficient approach for a Pi Zero 2 W:
    </script>
    ```
 
-## Step 5: Set Up Auto-Start Service
+## Step 5: Run Without Keeping the Terminal Open
 
-We'll use systemd to keep the app running and start it on boot.
+**Option 5a – Run in background (until you log out or reboot):**  
+From the project directory:
+
+```bash
+nohup ./pi-start.sh > yugiohfm.log 2>&1 &
+```
+
+The app keeps running and output goes to `yugiohfm.log`. To stop it later: `pkill -f "serve dist"` (or find the process with `ps aux | grep serve` and kill it).
+
+**Option 5b – Start on boot and keep running (recommended):**  
+Use the systemd service below so the app starts automatically and restarts if it crashes.
+
+---
+
+### Set Up Auto-Start Service (systemd)
 
 ### For Production Build (Option A):
 
@@ -195,7 +209,8 @@ We'll use systemd to keep the app running and start it on boot.
 sudo nano /etc/systemd/system/yugiohfm.service
 ```
 
-Add this content:
+Add this content (replace `YOUR_USER` with your Pi username, e.g. `lodakia`, and `YOUR_PROJECT_PATH` with the full path to the project, e.g. `/home/lodakia/YugiohFM-Helper`):
+
 ```ini
 [Unit]
 Description=YGOFM Helper Web App
@@ -203,15 +218,17 @@ After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/yugiohfm-helper
-ExecStart=/usr/bin/npx serve dist -l tcp://0.0.0.0:3000
+User=YOUR_USER
+WorkingDirectory=YOUR_PROJECT_PATH
+ExecStart=/bin/bash -lc 'cd YOUR_PROJECT_PATH && ./pi-start.sh'
 Restart=always
 RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+The `bash -lc` ensures your shell environment (and thus `pnpm`) is loaded when the service runs.
 
 ### For Development Mode (Option B):
 
@@ -379,6 +396,80 @@ sudo ln -s /etc/nginx/sites-available/yugiohfm /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
+
+## Updating the App After You Change the Repo
+
+### Manual update (when you push changes from your PC)
+
+**On your PC:** edit, commit, and push to GitHub as usual.
+
+**On the Pi:** whenever you want to pull the latest and redeploy (e.g. right after pushing so you can test), run:
+
+```bash
+~/YugiohFM-Helper/update-and-restart.sh
+```
+
+(If you haven’t created that script yet, see “Option B” under automatic updates, or run the steps by hand: `cd ~/YugiohFM-Helper`, then `git pull`, `pnpm install`, `pnpm run build`, `sudo systemctl restart yugiohfm.service`.)
+
+**From your PC (one command after you push):** to update the Pi without opening a Pi terminal, SSH in and run the script:
+
+```bash
+ssh lodakia@192.168.1.164 "~/YugiohFM-Helper/update-and-restart.sh"
+```
+
+Replace `lodakia` and `192.168.1.164` with your Pi username and IP. Then refresh the app in your browser to test.
+
+If you use a different branch (e.g. `main`), make sure you’re on it before pulling: `git checkout main` then run the script (or `git pull`) again.
+
+### Optional: automatic updates on the Pi
+
+You can have the Pi periodically pull from the repo, rebuild, and restart the app. Two simple options:
+
+**Option A – Cron (e.g. every day at 4:00)**  
+Run `crontab -e` and add one line (replace the path with yours):
+
+```cron
+0 4 * * * cd /home/lodakia/YugiohFM-Helper && git pull && pnpm install && pnpm run build && sudo systemctl restart yugiohfm.service
+```
+
+**Option B – Script + cron (cleaner)**  
+Create a script so you can also run updates by hand:
+
+```bash
+nano ~/YugiohFM-Helper/update-and-restart.sh
+```
+
+Paste (adjust paths if needed):
+
+```bash
+#!/bin/bash
+set -e
+cd /home/lodakia/YugiohFM-Helper
+git pull
+pnpm install
+pnpm run build
+sudo systemctl restart yugiohfm.service
+echo "YGOFM Helper updated and restarted."
+```
+
+Make it executable and run it when you want an update:
+
+```bash
+chmod +x ~/YugiohFM-Helper/update-and-restart.sh
+~/YugiohFM-Helper/update-and-restart.sh
+```
+
+To run it automatically (e.g. daily at 4:00), run `crontab -e` and add:
+
+```cron
+0 4 * * * /home/lodakia/YugiohFM-Helper/update-and-restart.sh
+```
+
+**Notes:**
+- For `git pull` to work without typing a password, use HTTPS with a [personal access token](https://github.com/settings/tokens) or set up [SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) and clone via SSH (`git@github.com:...`). Public repos often allow read-only pull over HTTPS without a token.
+- If the cron job asks for a password when running `sudo systemctl restart`, allow passwordless restart for the service once: `sudo visudo` and add a line: `lodakia ALL=(ALL) NOPASSWD: /bin/systemctl restart yugiohfm.service` (replace `lodakia` with your username). Or run the cron as root (e.g. `sudo crontab -e`) and use the same script without `sudo` in the systemctl command.
+
+---
 
 ## Maintenance Commands
 
