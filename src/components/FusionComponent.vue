@@ -74,6 +74,25 @@
                 this.runFusionCalc();
             }
         },
+        computed: {
+            /** Deck cards sorted by how many fusion combinations they appear in (most to least). Only when deck is small (e.g. actual deck). */
+            deckCardsByFusionCount() {
+                if (!this.filtered_fusions || this.filtered_fusions.length === 0) return [];
+                if (!this.filter_deck || this.filter_deck.length > 40) return [];
+                const countBy = {};
+                this.filter_deck.forEach(id => { countBy[id] = 0; });
+                this.filtered_fusions.forEach(f => {
+                    const id0 = f[0].id;
+                    const id1 = f[1].id;
+                    if (countBy[id0] !== undefined) countBy[id0]++;
+                    if (id1 !== id0 && countBy[id1] !== undefined) countBy[id1]++;
+                });
+                return this.filter_deck
+                    .map(id => ({ card: this.retrieveCard(id), count: countBy[id] || 0 }))
+                    .filter(item => item.card != null)
+                    .sort((a, b) => b.count - a.count);
+            }
+        },
         methods: {
             runFusionCalc() {
                 let self = this;
@@ -214,6 +233,29 @@
             </div>
         </div>
         <template v-else>
+            <div class="row mt-2 mb-3" v-if="deckCardsByFusionCount.length > 0">
+                <div class="col-12">
+                    <div class="card bg-dark">
+                        <div class="card-header">
+                            <h5 class="mb-0">Deck cards by fusion combinations</h5>
+                            <p class="text-muted small mb-0 mt-1">Most to least used as material in the fusions below.</p>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <RouterLink
+                                    v-for="item in deckCardsByFusionCount"
+                                    :key="item.card.id"
+                                    :to="{ name: 'cardDetails', params: { id: item.card.id } }"
+                                    class="badge text-decoration-none"
+                                    :class="item.count > 0 ? 'bg-primary' : 'bg-secondary'"
+                                >
+                                    {{ item.card.name }} ({{ item.count }})
+                                </RouterLink>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row mt-2 mb-4" v-if="columns.filter">
                 <div class="col-md-3 col-8 mb-2">
                     <div class="input-group">

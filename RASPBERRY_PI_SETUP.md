@@ -281,22 +281,40 @@ sudo systemctl status yugiohfm.service
 
 ## Step 6: Verify It's Working
 
-1. **Check if the service is running:**
+Run these **on the Pi** (SSH or local terminal) to confirm the app is up:
+
+1. **Is the service running?**
    ```bash
    sudo systemctl status yugiohfm.service
    ```
+   You want to see `Active: active (running)`. If it says `failed` or `inactive`, check the logs (step 4).
 
-2. **Check if the port is listening:**
+2. **Is anything listening on port 3000?**
    ```bash
-   netstat -tlnp | grep :3000
-   # or for dev mode:
-   netstat -tlnp | grep :5173
+   ss -tlnp | grep 3000
    ```
+   You should see a line like `LISTEN ... *:3000 ...`. If nothing appears, the app is not bound to port 3000.
 
-3. **Access from another device on your network:**
-   - Open a browser on any device connected to the same network
-   - Navigate to `http://YOUR_PI_IP:3000` (or `:5173` for dev mode)
-   - You should see the YGOFM Helper app
+3. **Can you reach it from the Pi itself?**
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+   ```
+   A response of `200` means the app is serving. Then try in a browser on the Pi: `http://localhost:3000`.  
+   From another device on your network, open `http://192.168.1.164:3000` (use your Pi’s IP from `hostname -I`).
+
+4. **If the service is not running or not listening, check the logs:**
+   ```bash
+   sudo journalctl -u yugiohfm.service -n 50 --no-pager
+   ```
+   Look for errors (e.g. "Cannot find module", "EADDRINUSE", or "dist not found").
+
+5. **Confirm the build and Node are in place:**
+   ```bash
+   cd /home/lodakia/YugiohFM-Helper   # or your project path
+   ls -la dist/index.html
+   node -e "require('express')"
+   ```
+   If `dist/index.html` is missing, run `pnpm run build`. If Node can’t load `express`, run `pnpm install` in the project directory.
 
 ## Step 7: Firewall Configuration (if needed)
 
@@ -320,33 +338,38 @@ sudo iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
 
 | How you run it | Port | Command / requirement |
 |----------------|------|-------------------------|
-| Production (recommended on Pi) | **3000** | Build first: `npm run build` or `pnpm run build`, then run `serve dist -l tcp://0.0.0.0:3000` or use the systemd service / `./pi-start.sh` |
-| Development (Vite dev server) | **5173** | `npm run dev` or `pnpm run dev` — use `http://YOUR_PI_IP:5173` in the browser and in `index.html` siteUrl |
+| Production (recommended on Pi) | **3000** | Build: `pnpm run build`, then run **`node server.js`** (or `pnpm start`). The systemd service should use `ExecStart=/path/to/node server.js`. |
+| Development (Vite dev server) | **5173** | `pnpm run dev` — use `http://YOUR_PI_IP:5173` in the browser and in `index.html` siteUrl |
 
-If nothing is listening on 3000, `curl http://localhost:3000` will hang and the browser will show nothing. Run these on the Pi to diagnose:
+If nothing is listening on 3000, `curl http://localhost:3000` will hang. On the Pi, run:
 
 ```bash
-# Is anything listening on 3000 or 5173?
-ss -tlnp | grep -E ':3000|:5173'
-# or: netstat -tlnp | grep -E ':3000|:5173'
+# Is anything listening on 3000?
+ss -tlnp | grep 3000
 
-# If using the systemd service, is it running?
+# Is the service running?
 sudo systemctl status yugiohfm.service
 
-# If production: do you have a built dist folder?
-ls -la /home/pi/yugiohfm-helper/dist
+# Do you have a built app and Node?
+ls -la /home/lodakia/YugiohFM-Helper/dist/index.html
+which node
 ```
 
-**Quick fix to get something on port 3000:** From the project directory on the Pi, run:
+**Quick fix — run the app by hand (no systemd):** From the project directory on the Pi:
 
 ```bash
-pnpm run build   # or: npm run build
-pnpm exec serve dist -l tcp://0.0.0.0:3000   # or: npx serve dist -l tcp://0.0.0.0:3000
+cd /home/lodakia/YugiohFM-Helper   # or your project path
+pnpm run build
+node server.js
 ```
 
-Then try `curl http://localhost:3000` again. To use the Pi’s IP from another device, open `http://192.168.1.164:3000` (replace with your Pi’s IP).
+Leave that terminal open; you should see “YGOFM Helper server running at http://0.0.0.0:3000”. Then try `curl http://localhost:3000` and, from another device, `http://192.168.1.164:3000`. If that works, the problem is with the systemd unit (e.g. wrong `WorkingDirectory`, wrong path to `node` if you use NVM).
 
-**Pi-hole / PiVPN / Unbound:** DNS (e.g. Unbound on `127.0.0.1#5335`) does not use port 3000. It won’t block the app. If you still can’t connect, check firewall rules (see Step 7).
+**If you use NVM:** systemd does not load your shell, so `/usr/bin/node` may not exist. In the service file, set `ExecStart` to the full path of `node`, e.g.  
+`ExecStart=/home/lodakia/.nvm/versions/node/v25.6.1/bin/node server.js`  
+(Get the path with `which node` when logged in.)
+
+**Pi-hole / PiVPN:** They don’t use port 3000, so they won’t block the app. If you still can’t connect, check firewall (Step 7).
 
 ### Using pnpm instead of npm
 
