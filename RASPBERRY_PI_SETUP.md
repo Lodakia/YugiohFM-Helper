@@ -93,6 +93,20 @@ uname -m
 # Should show 'aarch64' for 64-bit ARM
 ```
 
+**Install pnpm (recommended, no npm required):** This guide and the update script use pnpm. Install it after Node.js:
+
+```bash
+# Using Corepack (bundled with Node 16.13+)
+corepack enable
+corepack prepare pnpm@latest
+
+# Or standalone install script
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+source ~/.bashrc
+```
+
+Verify: `pnpm --version`
+
 ## Step 2: Clone and Setup the Project
 
 ```bash
@@ -103,9 +117,9 @@ cd /home/pi
 git clone <your-repo-url> yugiohfm-helper
 cd yugiohfm-helper
 
-# Install dependencies (use pnpm if you prefer)
-npm install
-# Or: pnpm install
+# Install dependencies (pnpm recommended on Pi; npm works too)
+pnpm install
+# Or: npm install
 ```
 
 ## Step 3: Get Your Pi's Local IP Address
@@ -134,13 +148,15 @@ This is the most efficient approach for a Pi Zero 2 W and **persists decks on th
 
 2. **Build the project:**
    ```bash
-   npm run build
+   pnpm run build
    ```
+   (or `npm run build`)
 
 3. **Start the server:**
    ```bash
-   npm start
+   pnpm start
    ```
+   (or `npm start`)  
    This runs the included Node server (port 3000), which serves the app and saves userdata (decks, game-assist state) to `data/userdata.json` in the project folder. That file is created automatically and is listed in `.gitignore`.
 
 ### Option B: Development Mode with Vite (Easier, but less efficient)
@@ -209,7 +225,17 @@ WantedBy=multi-user.target
 
 Deck and game-assist data are stored in `YOUR_PROJECT_PATH/data/userdata.json`. Back up that file if you want to keep your decks when updating the app.
 
-If you installed Node via NVM, systemd may not have `node` in PATH. Use the full path to `node` in `ExecStart`, for example:
+**Updating the app:** A script is included to pull changes, install deps, build, and restart the service (and to back up `data/userdata.json` before updating):
+
+```bash
+cd /home/lodakia/YugiohFM-Helper   # or your project path
+chmod +x scripts/update-on-pi.sh
+./scripts/update-on-pi.sh
+```
+
+The script uses **pnpm** (no npm required). It runs `git pull`, `pnpm install`, `pnpm run build`, then `sudo systemctl restart yugiohfm.service`. If you use npm instead, edit the script and replace `pnpm` with `npm`.
+
+If you installed Node via NVM, systemd may not have `node` in PATH. Use the full path to `node` in `ExecStart`, for example:  
 `ExecStart=/home/pi/.nvm/versions/node/v25.6.1/bin/node server.js` (replace with your NVM node path; run `which node` in your shell to see it).
 
 ### For Development Mode (Option B):

@@ -25,9 +25,8 @@ This section explains how to run your own **local (localhost) instance** of YGOF
 
 ### Prerequisites
 
-Before doing anything make sure to have Node.js installed on your computer. For more information about Node.js visit the [official website](https://nodejs.org/en/).
-
-Then update your node packet manager to the latest version using `npm install npm@latest -g`.
+- **Node.js** — [official website](https://nodejs.org/en/).
+- **Package manager** — **pnpm** (recommended) or npm. If you use pnpm: install from [pnpm.io](https://pnpm.io). If you use npm: update with `npm install npm@latest -g`.
 
 
 ### Setup
@@ -36,18 +35,19 @@ By default, card visuals are not included as they are not compatible with the op
 
 - Clone the repository locally on your computer or download and un-zip the last version of it on your computer.
   
-- Open a terminal at the root of the project folder and install npm packages with the command `npm install`.
+- Open a terminal at the root of the project folder and install dependencies: `pnpm install` or `npm install`.
 
 - (optional) If you have downloaded card visuals, extract the archive inside the `public` folder to include it in your project instance.
 
 
 ### Run (localhost)
 
-- To run the project in development mode on localhost use the command:
+- To run the project in development mode on localhost:
 
   ```bash
-  npm run dev
+  pnpm run dev
   ```
+  (or `npm run dev`)
 
   This will start a local development server (typically on `http://localhost:5173` or a similar port, as indicated in the terminal output). Use this mode for day-to-day local usage.
 
@@ -57,25 +57,28 @@ By default, card visuals are not included as they are not compatible with the op
 - To build the project for optimized local use:
 
   ```bash
-  npm run build
+  pnpm run build
   ```
+  (or `npm run build`)
 
 - To test the build locally:
 
   ```bash
-  npm run preview
+  pnpm run preview
   ```
+  (or `npm run preview`)
 
 The built files are output to the `dist` folder.
 
 **Server-side deck persistence:** To keep decks (and game-assist state) saved on the server so they survive restarts and browser closes, run the included Node server instead of a plain static server:
 
 ```bash
-npm run build
-npm start
+pnpm run build
+pnpm start
 ```
+(or `npm run build` then `npm start`)
 
-This starts a small server (default port 3000) that serves the app and stores userdata in a `data/userdata.json` file. The app will load and save decks from the server when available; if the server has no API (e.g. when using `npm run dev`), it falls back to cookie storage.
+This starts a small server (default port 3000) that serves the app and stores userdata in a `data/userdata.json` file. The app will load and save decks from the server when available; if the server has no API (e.g. when using `pnpm run dev`), it falls back to cookie storage.
 
 If you use a different static file server (no API), ensure that:
 
